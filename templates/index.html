@@ -1,0 +1,505 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+<script type="text/javascript">
+    
+</script>
+<title>Nifty-50 Stock Price Predictor</title>
+{% endblock %}
+
+
+{% block body %}
+<div class="header-container">
+    <h1>NIFTY-50 Stock Price Predictor</h1>
+</div>
+<div class="about-link">
+    <button type="button" class="about" id="about">About</button>
+</div>
+<div class="disclaimer-container">
+    <span class="disclaimer">Disclaimer: This program is just a learning tool to understand deep learning using LSTM layers. Do not take the predictions from this model as accurate financial advice. Please use your discretion and invest mindfully.</span>
+</div>
+
+<div class="form-container">
+    <form action="/" method="POST" autocomplete="off">
+        <div class="autocomplete">
+            <input type="text" id="stock" name="stock" placeholder="Stock">
+        </div>
+        <div class="submit-button">
+            <input type="submit" value="Submit" id="submit">
+        </div>
+    </form>
+</div>
+<div class="spacing"></div>
+<div class="results">
+    {% if curr_stock | length < 1 %}
+    <span></span>
+    {% elif curr_stock == 'Error!' %}
+    <span class='Error'>Input error! Try one of the stocks from the suggestions</span>
+    {% else %}
+    <div class="result-container">
+        <span id="print"></span>
+        <div class="image-container">
+            <div class="image1" id="image1">
+                
+            </div>
+            <div class="image2" id="image2">
+                
+            </div>
+            <div class="image3" id="image3">
+                
+            </div>
+            <div class="image4" id="image4">
+                
+            </div>
+            
+            <div class="dots-container">
+                <div class="page-dots">
+                    <span class="dot" id="1"></span>
+                    <span class="dot" id="2"></span>
+                    <span class="dot" id="3"></span>
+                    <span class="dot" id="4"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+
+    var currPage = 1;
+    $( document ).ready(function() {
+            $(".image1").hide();
+            $(".image2").hide();
+            $(".image3").hide();
+            $(".image4").hide();
+
+            $(".image1").show();
+            
+            $("#1").css({"background-color": "rgb(255,42,99)"});
+            $("#2").css({"background-color": "grey"});
+            $("#3").css({"background-color": "grey"});
+            $("#4").css({"background-color": "grey"});
+    });
+
+    $(".about").on("click", function() {
+        window.location.replace('/about');
+    });
+
+    $("#1").on("click", function() {
+        
+        $(".image1").show();
+        $(".image2").hide();
+        $(".image3").hide();
+        $(".image4").hide();
+        
+
+        $("#1").css({"background-color": "rgb(255,42,99)"});
+        $("#2").css({"background-color": "grey"});
+        $("#3").css({"background-color": "grey"});
+        $("#4").css({"background-color": "grey"});
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+
+    });
+
+    $("#2").on("click", function() {
+        
+        $(".image1").hide();
+        $(".image2").show();
+        $(".image3").hide();
+        $(".image4").hide();
+        
+
+        $("#1").css({"background-color": "grey"});
+        $("#2").css({"background-color": "rgb(255,42,99)"});
+        $("#3").css({"background-color": "grey"});
+        $("#4").css({"background-color": "grey"});
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+
+    });
+
+    $("#3").on("click", function() {
+        
+        $(".image1").hide();
+        $(".image2").hide();
+        $(".image3").show();
+        $(".image4").hide();
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+        
+
+        $("#1").css({"background-color": "grey"});
+        $("#2").css({"background-color": "grey"});
+        $("#3").css({"background-color": "rgb(255,42,99)"});
+        $("#4").css({"background-color": "grey"});
+
+    });
+    $("#4").on("click", function() {
+        
+        $(".image1").hide();
+        $(".image2").hide();
+        $(".image3").hide();
+        $(".image4").show();
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+        
+
+        $("#1").css({"background-color": "grey"});
+        $("#2").css({"background-color": "grey"});
+        $("#3").css({"background-color": "grey"});
+        $("#4").css({"background-color": "rgb(255,42,99)"});
+
+    });
+
+    $("#submit").on("click",function() {
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+    });
+
+    function autocomplete(inp, arr) {
+      /*the autocomplete function takes two arguments,
+      the text field element and an array of possible autocompleted values:*/
+      var currentFocus;
+      /*execute a function when someone writes in the text field:*/
+      inp.addEventListener("input", function(e) {
+          var a, b, i, val = this.value;
+          /*close any already open lists of autocompleted values*/
+          closeAllLists();
+          if (!val) { return false;}
+          currentFocus = -1;
+          /*create a DIV element that will contain the items (values):*/
+          a = document.createElement("DIV");
+          a.setAttribute("id", this.id + "autocomplete-list");
+          a.setAttribute("class", "autocomplete-items");
+          /*append the DIV element as a child of the autocomplete container:*/
+          this.parentNode.appendChild(a);
+          /*for each item in the array...*/
+          for (i = 0; i < arr.length; i++) {
+            /*check if the item starts with the same letters as the text field value:*/
+            if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+              /*create a DIV element for each matching element:*/
+              b = document.createElement("DIV");
+              /*make the matching letters bold:*/
+              b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+              b.innerHTML += arr[i].substr(val.length);
+              /*insert a input field that will hold the current array item's value:*/
+              b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+              /*execute a function when someone clicks on the item value (DIV element):*/
+              b.addEventListener("click", function(e) {
+                  /*insert the value for the autocomplete text field:*/
+                  inp.value = this.getElementsByTagName("input")[0].value;
+                  /*close the list of autocompleted values,
+                  (or any other open lists of autocompleted values:*/
+                  closeAllLists();
+              });
+              a.appendChild(b);
+            }
+          }
+      });
+      /*execute a function presses a key on the keyboard:*/
+      inp.addEventListener("keydown", function(e) {
+          var x = document.getElementById(this.id + "autocomplete-list");
+          if (x) x = x.getElementsByTagName("div");
+          if (e.keyCode == 40) {
+            /*If the arrow DOWN key is pressed,
+            increase the currentFocus variable:*/
+            currentFocus++;
+            /*and and make the current item more visible:*/
+            addActive(x);
+          } else if (e.keyCode == 38) { //up
+            /*If the arrow UP key is pressed,
+            decrease the currentFocus variable:*/
+            currentFocus--;
+            /*and and make the current item more visible:*/
+            addActive(x);
+          } else if (e.keyCode == 13) {
+            /*If the ENTER key is pressed, prevent the form from being submitted,*/
+            e.preventDefault();
+            if (currentFocus > -1) {
+              /*and simulate a click on the "active" item:*/
+              if (x) x[currentFocus].click();
+            }
+          }
+      });
+      function addActive(x) {
+        /*a function to classify an item as "active":*/
+        if (!x) return false;
+        /*start by removing the "active" class on all items:*/
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        /*add class "autocomplete-active":*/
+        x[currentFocus].classList.add("autocomplete-active");
+      }
+      function removeActive(x) {
+        /*a function to remove the "active" class from all autocomplete items:*/
+        for (var i = 0; i < x.length; i++) {
+          x[i].classList.remove("autocomplete-active");
+        }
+      }
+      function closeAllLists(elmnt) {
+        /*close all autocomplete lists in the document,
+        except the one passed as an argument:*/
+        var x = document.getElementsByClassName("autocomplete-items");
+        for (var i = 0; i < x.length; i++) {
+          if (elmnt != x[i] && elmnt != inp) {
+            x[i].parentNode.removeChild(x[i]);
+          }
+        }
+      }
+      /*execute a function when someone clicks in the document:*/
+      document.addEventListener("click", function (e) {
+          closeAllLists(e.target);
+      });
+    }
+    var stocks = {{stocks|safe}};
+    autocomplete(document.getElementById("stock"), stocks);
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart() {
+
+        //var future = google.visualization.arrayToDataTable({{future_data|safe}});
+        var stock = "{{curr_stock}}";
+        
+        var future_array = {{future_data|safe}};
+        future_array = future_array.map(function(row) { return row.map(function(item) { return item == -1 ? null : item; }); });
+        var future = new google.visualization.DataTable();
+        future.addColumn('number','Days');
+        future.addColumn('number','Data');
+        future.addColumn('number','30-day prediction');
+        future.addRows(future_array);
+
+
+        //var train = google.visualization.arrayToDataTable({{train_data|safe}});
+        
+        var train_array = {{train_data|safe}};
+        train_array = train_array.map(function(row) { return row.map(function(item) { return item == -1 ? null : item; }); });
+        var train = new google.visualization.DataTable();
+        train.addColumn('number','Days');
+        train.addColumn('number','Actual');
+        train.addColumn('number','Predicted');
+        train.addRows(train_array);
+        
+
+        //var test = google.visualization.arrayToDataTable({{test_data|safe}});
+        
+        var test_array = {{test_data|safe}};
+        test_array = test_array.map(function(row) { return row.map(function(item) { return item == -1 ? null : item; }); });
+        var test = new google.visualization.DataTable();
+        test.addColumn('number','Days');
+        test.addColumn('number','Actual');
+        test.addColumn('number','Predicted');
+        test.addRows(test_array);
+        
+
+        //var together = google.visualization.arrayToDataTable({{together_data|safe}});
+        
+        var together_array = {{together_data|safe}};
+        together_array = together_array.map(function(row) { return row.map(function(item) { return item == -1 ? null : item; }); });
+        var together = new google.visualization.DataTable();
+        together.addColumn('number','Days');
+        together.addColumn('number','Data');
+        together.addColumn('number','Train predict');
+        together.addColumn('number','Test predict');
+        together.addRows(together_array);
+        
+
+        
+        var future_options = {
+          backgroundColor: "transparent",
+          colors:['rgb(10,207,131)','rgb(26,188,254)','rgb(255,114,98)'],
+          title: stock.concat(' stock prices'),
+          titleTextStyle: {
+            fontName: 'Verdana',
+            fontSize: 15,
+            color: 'whitesmoke'
+          },
+
+          hAxis: {
+              title: 'Days',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              gridlines: {
+                color: 'transparent'
+              },
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          vAxis: {
+              title: 'Stock Price',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              baselineColor: 'whitesmoke',
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          legend: {
+            position: 'bottom',
+            textStyle: {
+              color: 'whitesmoke'
+            }
+          }
+        };
+        var train_options = {
+          title: stock.concat(' stock prices for TRAIN data'),
+          backgroundColor: "transparent",
+          colors:['rgb(10,207,131)','rgb(26,188,254)','rgb(255,114,98)'],
+          titleTextStyle: {
+            fontName: 'Verdana',
+            fontSize: 15,
+            color: 'whitesmoke'
+          },
+
+          hAxis: {
+              title: 'Days',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              gridlines: {
+                color: 'transparent'
+              },
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          vAxis: {
+              title: 'Stock Price',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              baselineColor: 'whitesmoke',
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          legend: {
+            position: 'bottom',
+            textStyle: {
+              color: 'whitesmoke'
+            }
+          }
+        };
+        var test_options = {
+          title: stock.concat(' stock prices TEST data'),
+          backgroundColor: "transparent",
+          colors:['rgb(10,207,131)','rgb(26,188,254)','rgb(255,114,98)'],
+          titleTextStyle: {
+            fontName: 'Verdana',
+            fontSize: 15,
+            color: 'whitesmoke'
+          },
+
+          hAxis: {
+              title: 'Days',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              gridlines: {
+                color: 'transparent'
+              },
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          vAxis: {
+              title: 'Stock Price',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              baselineColor: 'whitesmoke',
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          legend: {
+            position: 'bottom',
+            textStyle: {
+              color: 'whitesmoke'
+            }
+          }
+        };
+        var together_options = {
+          title: stock.concat(' stock prices Actual v Predicted'),
+          backgroundColor: "transparent",
+          colors:['rgb(10,207,131)','rgb(26,188,254)','rgb(255,114,98)'],
+          titleTextStyle: {
+            fontName: 'Verdana',
+            fontSize: 15,
+            color: 'whitesmoke'
+          },
+
+          hAxis: {
+              title: 'Days',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              gridlines: {
+                color: 'transparent'
+              },
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          vAxis: {
+              title: 'Stock Price',
+              titleTextStyle: {
+                  fontName: 'Verdana',
+                  bold: true,
+                  color: 'whitesmoke'
+              },
+              baselineColor: 'whitesmoke',
+              textStyle: {
+                color: 'whitesmoke'
+              }
+        },
+          legend: {
+            position: 'bottom',
+            textStyle: {
+              color: 'whitesmoke'
+            }
+          }
+        };
+        var chart1 = new google.visualization.AreaChart(document.getElementById('image1'));
+        chart1.draw(future,future_options);
+
+        var chart2 = new google.visualization.AreaChart(document.getElementById('image2'));
+        chart2.draw(train,train_options);
+
+        var chart3 = new google.visualization.AreaChart(document.getElementById('image3'));
+        chart3.draw(test,test_options);
+
+        var chart4 = new google.visualization.AreaChart(document.getElementById('image4'));
+        chart4.draw(together,together_options);
+    }
+</script>
+
+{% endblock %}

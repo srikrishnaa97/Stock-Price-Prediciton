@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>About</title>
+{% endblock %}
+
+{% block body %}
+<div class="about-container">
+    <h3>About</h3>
+    <div class="back-link">
+        <button type="button" class="back" id="back">Back</button>
+    </div>
+    <p>
+        This is an end to end implementation of "Stock Price Prediction using Machine Learning" project. Using a deep neural network 
+        consisting of LSTM (Long Short Term Memory) layers and the NIFTY-50 stock prices data set from <a href="https://www.kaggle.com/rohanrao/nifty50-stock-market-data" target="_blank">kaggle</a>,
+        (up to 30-Apr-2021), the stock price at close for the next 30 days was predicted.
+    </p> 
+    <p>
+        To predict the stock price for day 101, the previous 100 days' stock price (dat 1 to day 100) was 
+        fed into the neural network as input. Similarly, for predicting the stock price on day 102, the 
+        stock prices from day 2 to day 101 were given as input. 
+    </p>
+    <p>
+        To predict the stock price for 30 days after 30th April 2021, the stock prices for the previous 
+        1000 days were fed into the model with a 70:30 train-test split. Since the model requires 100-days'
+        stock price as input to make the first prediction, the prices for days 1 to 100 cannot be predicted
+        by the model. Same is the case for test data. Hence the model has predicted stock prices for days 
+        101 to 699 (training data) and days 801 to 999 (test data).
+    </p>
+    <p>
+        Model architecture:
+        <ul>
+            <li>Input size: &nbsp;&nbsp;&nbsp;&nbsp;100x1</li>
+            <li>LSTM layer: &nbsp;&nbsp;&nbsp;&nbsp;100 neurons</li>
+            <li>LSTM layer: &nbsp;&nbsp;&nbsp;&nbsp;50 neurons</li>
+            <li>LSTM layer: &nbsp;&nbsp;&nbsp;&nbsp;25 neurons</li>
+            <li>Dense output layer: &nbsp;&nbsp;&nbsp;&nbsp;1 neuron</li>
+        </ul>
+    </p>
+    <p>
+        The same model architecture has been used for all the stocks. We see that for some stocks,
+        the match with test data is very good whereas for some others the values are either shifted or 
+        the predicted behaviour is just incorrect. We can conclude that not all stocks behave the same way
+        and probably different network architectures are required to predict the behaviour of different stocks.
+    </p>
+    <p>
+        Check the jupyter notebook available in the github link. 
+    </p>
+</div>
+
+<div class="my_name">
+    <span><a href="https://github.com/srikrishnaa97/Stock-Price-Prediction"><i class="fa fa-github"></i></a> Srikrishnaa J</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+    $(".back").on("click", function() {
+        window.location.replace('/');
+    });
+</script>
+{% endblock %}
