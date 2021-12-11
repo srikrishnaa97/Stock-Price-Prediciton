@@ -111,7 +111,7 @@ input[type=submit]:hover {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 40vw;
+    width: 80vw;
     height: 60vh;
     border-style: solid;
     border-width: thin;
