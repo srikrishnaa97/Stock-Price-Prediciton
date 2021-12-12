@@ -4,4 +4,4 @@ This is an end to end implementation of "Stock Price Prediction using Machine Le
         (up to 30-Apr-2021), the stock price at close for the next 30 days was predicted.
         
 
-The model is deployed <a href="https://niftystockpricepredictor.azurewebsites.net" target="_blank">here</a>
+The model is deployed <a href="https://niftystockpricepredictor.azurewebsites.net" target="_blank">here</a>.
